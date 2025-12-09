@@ -32,7 +32,9 @@ public class ContactService {
             // Email failed - Save to database as backup
             log.error("Failed to send email for: {}. Saving to database.", request.getEmail(), e);
             saveFailedSubmission(request);
-            throw new RuntimeException("Failed to send email, but your information has been saved");
+            // Do not rethrow; we consider this a soft failure and return success to the user
+            // while preserving the data for follow-up.
+            log.info("Email failure handled gracefully; user data saved for follow-up.");
         }
     }
 
