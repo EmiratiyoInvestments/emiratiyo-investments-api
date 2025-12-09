@@ -41,7 +41,7 @@ public class EmailService {
         try {
             ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, entity, String.class);
 
-            if (response.getStatusCode() == HttpStatus.OK) {
+            if (response.getStatusCode().is2xxSuccessful()) {
                 log.info("Email sent successfully to {} for contact: {}", recipientEmail, request.getEmail());
             } else {
                 log.error("Failed to send email. Status: {}", response.getStatusCode());
