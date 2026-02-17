@@ -1,5 +1,6 @@
 package com.thecheatschool.thecheatschool.server.service.em;
 
+import com.thecheatschool.thecheatschool.server.model.em.EMBusinessSetupRequest;
 import com.thecheatschool.thecheatschool.server.model.em.EMContactRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -25,11 +26,11 @@ public class EMEmailService {
 
     private final RestTemplate restTemplate = new RestTemplate();
 
-    public void sendContactEmail(EMContactRequest request) {
+    public void sendBusinessSetupEmail(EMBusinessSetupRequest request) {
         String url = "https://api.resend.com/emails";
         String emailHash = maskEmail(request.getEmail());
 
-        log.info("Starting EM email send process, subject: {}, reply-to: {}", request.getSubject(), emailHash);
+        log.info("Starting EM business setup email send process, reply-to: {}", emailHash);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -39,7 +40,40 @@ public class EMEmailService {
         emailData.put("from", fromEmail);
         emailData.put("to", new String[]{recipientEmail});
         emailData.put("reply_to", request.getEmail());
-        emailData.put("subject", "Emiratiyo Investments - " + safeSubject(request.getSubject()) + " (" + request.getName() + ")");
+        emailData.put("subject", "Emiratiyo Investments - Business Setup Request (" + request.getFullName() + ")");
+        emailData.put("html", buildBusinessSetupEmailHtml(request));
+
+        HttpEntity<Map<String, Object>> entity = new HttpEntity<>(emailData, headers);
+
+        try {
+            ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, entity, String.class);
+            if (response.getStatusCode().is2xxSuccessful()) {
+                log.info("EM business setup email sent successfully, reply-to: {}", emailHash);
+            } else {
+                log.warn("EM business setup email failed. HTTP Status: {}", response.getStatusCode());
+                throw new RuntimeException("Failed to send email");
+            }
+        } catch (Exception e) {
+            log.error("Error sending EM business setup email via Resend API, reply-to: {}", emailHash, e);
+            throw new RuntimeException("Failed to send email", e);
+        }
+    }
+
+    public void sendContactEmail(EMContactRequest request) {
+        String url = "https://api.resend.com/emails";
+        String emailHash = maskEmail(request.getEmail());
+
+        log.info("Starting EM email send process, reply-to: {}", emailHash);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("Authorization", "Bearer " + resendApiKey);
+
+        Map<String, Object> emailData = new HashMap<>();
+        emailData.put("from", fromEmail);
+        emailData.put("to", new String[]{recipientEmail});
+        emailData.put("reply_to", request.getEmail());
+        emailData.put("subject", "Emiratiyo Investments - New Contact Message (" + request.getName() + ")");
         emailData.put("html", buildEmailHtml(request));
 
         HttpEntity<Map<String, Object>> entity = new HttpEntity<>(emailData, headers);
@@ -84,11 +118,56 @@ public class EMEmailService {
         // Content
         html.append("<div style='padding:0;'>");
         addRow(html, "Name", request.getName(), black, grey);
-        addRow(html, "Company", request.getCompany(), black, grey);
         addRow(html, "Phone", request.getPhone(), black, grey);
         addRow(html, "Email", request.getEmail(), black, grey);
-        addRow(html, "Subject", request.getSubject(), black, grey);
-        addRow(html, "Message", escapeHtml(request.getMessage()).replace("\n", "<br/>") , black, grey);
+        String message = request.getMessage();
+        if (message == null || message.trim().isEmpty()) {
+            message = "(No message provided)";
+        }
+        addRow(html, "Message", escapeHtml(message).replace("\n", "<br/>") , black, grey);
+        html.append("</div>");
+
+        // Footer
+        html.append("<div style='padding:18px 20px; background-color:").append(white).append("; border-top:3px solid ").append(primary).append(";'>");
+        html.append("<div style='color:").append(grey).append("; font-size:12px;'>You can reply directly to this email to respond to the sender.</div>");
+        html.append("</div>");
+
+        html.append("</div>");
+        html.append("</body>");
+        html.append("</html>");
+
+        return html.toString();
+    }
+
+    private String buildBusinessSetupEmailHtml(EMBusinessSetupRequest request) {
+        final String primary = "#e83f25";
+        final String black = "#000000";
+        final String grey = "#939393";
+        final String white = "#f7f7f7";
+
+        StringBuilder html = new StringBuilder();
+        html.append("<!DOCTYPE html>");
+        html.append("<html>");
+        html.append("<head>");
+        html.append("<meta name='viewport' content='width=device-width, initial-scale=1.0'>");
+        html.append("<link href='https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap' rel='stylesheet'>");
+        html.append("</head>");
+        html.append("<body style='margin:0; padding:20px; background-color:").append(white).append("; font-family: Inter, Arial, sans-serif;'>");
+
+        html.append("<div style='max-width:720px; margin:0 auto; background-color:#ffffff; border:1px solid #eeeeee; border-radius:12px; overflow:hidden;'>");
+
+        // Header
+        html.append("<div style='background-color:").append(black).append("; padding:22px 20px;'>");
+        html.append("<div style='color:#ffffff; font-size:16px; letter-spacing:0.3px; font-weight:700;'>BUSINESS SETUP REQUEST</div>");
+        html.append("<div style='color:").append(grey).append("; font-size:12px; margin-top:6px;'>Emiratiyo Investments Website</div>");
+        html.append("</div>");
+
+        // Content
+        html.append("<div style='padding:0;'>");
+        addRow(html, "Full Name", request.getFullName(), black, grey);
+        addRow(html, "Email", request.getEmail(), black, grey);
+        addRow(html, "Mobile Number", request.getMobileNumber(), black, grey);
+        addRow(html, "Country of Residence", request.getCountryOfResidence(), black, grey);
         html.append("</div>");
 
         // Footer
@@ -111,14 +190,6 @@ public class EMEmailService {
         html.append("<div style='color:").append(grey).append("; font-size:12px; text-transform:uppercase; letter-spacing:0.6px; margin-bottom:6px;'>").append(escapeHtml(label)).append("</div>");
         html.append("<div style='color:").append(black).append("; font-size:14px; line-height:1.5; word-break:break-word;'>").append(escapeHtml(value)).append("</div>");
         html.append("</div>");
-    }
-
-    private String safeSubject(String subject) {
-        if (subject == null) {
-            return "Contact";
-        }
-        String trimmed = subject.trim();
-        return trimmed.isEmpty() ? "Contact" : trimmed;
     }
 
     private String escapeHtml(String input) {
