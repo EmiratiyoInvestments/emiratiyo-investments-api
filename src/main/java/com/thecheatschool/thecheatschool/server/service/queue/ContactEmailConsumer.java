@@ -87,10 +87,8 @@ public class ContactEmailConsumer {
 
         EMContactRequest request = new EMContactRequest(
                 submission.getName(),
-                submission.getCompany(),
                 submission.getPhone(),
                 submission.getEmail(),
-                submission.getSubject(),
                 submission.getMessage()
         );
 

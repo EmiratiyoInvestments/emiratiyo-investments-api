@@ -30,7 +30,7 @@ public class EMContactService {
     public void processContactForm(EMContactRequest request) {
         String requestId = generateRequestId();
 
-        log.info("[{}] Processing EM contact form submission, subject: {}", requestId, request.getSubject());
+        log.info("[{}] Processing EM contact form submission", requestId);
 
         EMContact submission = buildSubmission(request);
         submission.setStatus("PENDING_EMAIL");
@@ -61,10 +61,8 @@ public class EMContactService {
     private EMContact buildSubmission(EMContactRequest request) {
         EMContact submission = new EMContact();
         submission.setName(InputSanitizer.sanitize(request.getName()));
-        submission.setCompany(InputSanitizer.sanitize(request.getCompany()));
         submission.setPhone(InputSanitizer.sanitize(request.getPhone()));
         submission.setEmail(request.getEmail());
-        submission.setSubject(InputSanitizer.sanitize(request.getSubject()));
         submission.setMessage(InputSanitizer.sanitize(request.getMessage()));
         return submission;
     }

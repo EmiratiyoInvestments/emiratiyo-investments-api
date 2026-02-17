@@ -122,10 +122,8 @@ Content-Type: {{contentType}}
 
 {
   "name": "Talha Ahmed",
-  "company": "Emiratiyo Investments",
   "phone": "+971501234567",
   "email": "talha@example.com",
-  "subject": "Investment Inquiry",
   "message": "Hello, I want to know more about your services."
 }
 
@@ -137,10 +135,8 @@ Content-Type: {{contentType}}
 
 {
   "name": "Test User",
-  "company": "Test Company",
   "phone": "+971501234567",
   "email": "not-a-valid-email",
-  "subject": "Test",
   "message": "Hi"
 }
 
@@ -148,6 +144,48 @@ Content-Type: {{contentType}}
 
 ### Get Failed EM Contact Submissions
 GET {{baseUrl}}/api/em/contact/failed
+Accept: {{contentType}}
+
+###
+
+### ==============================================
+### EM (EMIRATIYO INVESTMENTS) BUSINESS SETUP ENDPOINTS
+### ==============================================
+
+### Get EM Business Setup Endpoint Information
+GET {{baseUrl}}/api/em/business-setup
+Accept: {{contentType}}
+
+###
+
+### Submit EM Business Setup - Valid Request
+POST {{baseUrl}}/api/em/business-setup
+Content-Type: {{contentType}}
+
+{
+  "fullName": "Talha Ahmed",
+  "email": "talha@example.com",
+  "mobileNumber": "+971 50 123 4567",
+  "countryOfResidence": "United Arab Emirates"
+}
+
+###
+
+### Submit EM Business Setup - Invalid Email
+POST {{baseUrl}}/api/em/business-setup
+Content-Type: {{contentType}}
+
+{
+  "fullName": "Test User",
+  "email": "not-a-valid-email",
+  "mobileNumber": "+971 50 123 4567",
+  "countryOfResidence": "United Arab Emirates"
+}
+
+###
+
+### Get Failed EM Business Setup Submissions
+GET {{baseUrl}}/api/em/business-setup/failed
 Accept: {{contentType}}
 
 ###

@@ -35,10 +35,8 @@ class EMContactServiceTest {
     private EMContactRequest createValidRequest() {
         EMContactRequest request = new EMContactRequest();
         request.setName("Talha Ahmed");
-        request.setCompany("Emiratiyo Investments");
         request.setPhone("+971501234567");
         request.setEmail("talha@example.com");
-        request.setSubject("Investment Inquiry");
         request.setMessage("Hello, I want to know more about your services.");
         return request;
     }
@@ -117,10 +115,8 @@ class EMContactServiceTest {
         EMContact savedContact = contactCaptor.getAllValues().get(contactCaptor.getAllValues().size() - 1);
 
         assertEquals("Talha Ahmed", savedContact.getName());
-        assertEquals("Emiratiyo Investments", savedContact.getCompany());
         assertEquals("+971501234567", savedContact.getPhone());
         assertEquals("talha@example.com", savedContact.getEmail());
-        assertEquals("Investment Inquiry", savedContact.getSubject());
         assertEquals("Line1\nLine2", savedContact.getMessage());
         assertEquals("EMAIL_FAILED", savedContact.getStatus());
         assertNotNull(savedContact.getSubmittedAt());

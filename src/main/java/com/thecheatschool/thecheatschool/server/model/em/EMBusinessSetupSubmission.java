@@ -8,27 +8,27 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "em_contact_submissions")
+@Table(name = "em_business_setup_submissions")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class EMContact {
+public class EMBusinessSetupSubmission {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(nullable = false)
-    private String name;
-
-    @Column(nullable = false)
-    private String phone;
+    private String fullName;
 
     @Column(nullable = false)
     private String email;
 
-    @Column(columnDefinition = "TEXT")
-    private String message;
+    @Column(nullable = false)
+    private String mobileNumber;
+
+    @Column(nullable = false)
+    private String countryOfResidence;
 
     @Column(nullable = false)
     private String status;
