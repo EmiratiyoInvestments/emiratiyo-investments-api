@@ -19,7 +19,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/contact")
-@CrossOrigin(origins = {"http://localhost:5173", "https://*.vercel.app"})
+@CrossOrigin(origins = "${cors.allowed-origins}")
 @RequiredArgsConstructor
 @Slf4j
 @Validated
