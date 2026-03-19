@@ -31,7 +31,7 @@ public class EmiraService {
     private final ObjectMapper objectMapper;
     private final CircuitBreaker circuitBreaker;
 
-    private static final String GEMINI_URL_TEMPLATE = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:streamGenerateContent?key=%s";
+    private static final String GEMINI_URL_TEMPLATE = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:streamGenerateContent?key=%s";
 
     public EmiraService(WebClient.Builder webClientBuilder, ObjectMapper objectMapper, CircuitBreakerRegistry circuitBreakerRegistry) {
         this.webClient = webClientBuilder.build();
