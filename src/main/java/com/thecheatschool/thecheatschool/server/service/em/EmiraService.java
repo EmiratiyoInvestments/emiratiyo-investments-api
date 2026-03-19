@@ -37,7 +37,7 @@ public class EmiraService {
     private final EmiraAnalysisRepository emiraAnalysisRepository;
 
     private static final String GEMINI_URL_TEMPLATE =
-        "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:streamGenerateContent?key=%s";
+        "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=%s";
 
     public EmiraService(ObjectMapper objectMapper, CircuitBreakerRegistry circuitBreakerRegistry, EmiraAnalysisRepository emiraAnalysisRepository) {
         this.objectMapper = objectMapper;
@@ -109,61 +109,66 @@ public class EmiraService {
             log.info("Gemini response status: {}", status);
 
             if (status != 200) {
-                log.error("Gemini returned non-200: {}", status);
+                try (BufferedReader errReader = new BufferedReader(
+                        new InputStreamReader(conn.getErrorStream(), StandardCharsets.UTF_8))) {
+                    StringBuilder errBody = new StringBuilder();
+                    String errLine;
+                    while ((errLine = errReader.readLine()) != null) errBody.append(errLine);
+                    log.error("Gemini error body: {}", errBody.toString());
+                } catch (Exception ignored) {}
                 return false;
             }
 
-            StringBuilder fullResponseText = new StringBuilder();
+            StringBuilder responseBody = new StringBuilder();
             try (BufferedReader reader = new BufferedReader(
                     new InputStreamReader(conn.getInputStream(), StandardCharsets.UTF_8))) {
                 String line;
                 while ((line = reader.readLine()) != null) {
-                    if (line.startsWith("data: ")) {
-                        String data = line.substring(6).trim();
-                        if (data.isEmpty()) continue;
-                        try {
-                            JsonNode node = objectMapper.readTree(data);
-                            JsonNode candidates = node.path("candidates");
-                            if (candidates.isArray() && candidates.size() > 0) {
-                                JsonNode parts = candidates.get(0)
-                                    .path("content")
-                                    .path("parts");
-                                if (parts != null && parts.isArray() && parts.size() > 0) {
-                                    String token = parts.get(0).path("text").asText();
-                                    if (!token.isEmpty()) {
-                                        emitter.send(SseEmitter.event().data(token));
-                                        fullResponseText.append(token);
-                                    }
-                                }
-                            }
-                        } catch (Exception e) {
-                            log.trace("Could not parse chunk: {}", data);
-                        }
-                    }
+                    responseBody.append(line);
                 }
+            }
+
+            JsonNode root = objectMapper.readTree(responseBody.toString());
+            String text = root
+                .path("candidates").get(0)
+                .path("content")
+                .path("parts").get(0)
+                .path("text")
+                .asText();
+
+            if (text == null || text.isEmpty()) {
+                log.error("Gemini returned empty text");
+                return false;
+            }
+
+            log.info("Gemini response received, length: {}", text.length());
+
+            // Send in small chunks to simulate streaming feel
+            String[] words = text.split("(?<=\\s)");
+            for (String word : words) {
+                emitter.send(SseEmitter.event().data(word));
             }
 
             emitter.complete();
 
-            // Save history
+            // Save to history
             try {
                 emiraAnalysisRepository.save(
                     EmiraAnalysis.builder()
                         .area(request.getArea())
                         .analysisType(request.getAnalysisType().toString())
-                        .responseText(fullResponseText.toString())
+                        .responseText(text)
                         .build()
                 );
-                log.info("Emira analysis saved to history for area: {}", request.getArea());
+                log.info("Saved to history for area: {}", request.getArea());
             } catch (Exception e) {
-                log.error("Failed to save Emira analysis history", e);
+                log.error("Failed to save history", e);
             }
 
             return true;
 
         } catch (Exception e) {
-            log.error("Gemini call failed with key starting {}: {}",
-                key.substring(0, 8), e.getMessage());
+            log.error("Gemini call failed: {}", e.getMessage());
             return false;
         }
     }
