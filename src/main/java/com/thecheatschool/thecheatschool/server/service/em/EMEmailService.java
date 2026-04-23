@@ -5,6 +5,7 @@ import com.thecheatschool.thecheatschool.server.model.em.EMContactRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -26,6 +27,7 @@ public class EMEmailService {
 
     private final RestTemplate restTemplate = new RestTemplate();
 
+    @Async("taskExecutor")
     public void sendBusinessSetupEmail(EMBusinessSetupRequest request) {
         String url = "https://api.resend.com/emails";
         String emailHash = maskEmail(request.getEmail());
@@ -55,10 +57,10 @@ public class EMEmailService {
             }
         } catch (Exception e) {
             log.error("Error sending EM business setup email via Resend API, reply-to: {}", emailHash, e);
-            throw new RuntimeException("Failed to send email", e);
         }
     }
 
+    @Async("taskExecutor")
     public void sendContactEmail(EMContactRequest request) {
         String url = "https://api.resend.com/emails";
         String emailHash = maskEmail(request.getEmail());
@@ -88,7 +90,6 @@ public class EMEmailService {
             }
         } catch (Exception e) {
             log.error("Error sending EM email via Resend API, reply-to: {}", emailHash, e);
-            throw new RuntimeException("Failed to send email", e);
         }
     }
 

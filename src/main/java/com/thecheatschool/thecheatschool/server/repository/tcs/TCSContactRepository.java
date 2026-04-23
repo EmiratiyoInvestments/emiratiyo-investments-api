@@ -1,4 +1,4 @@
-package com.thecheatschool.thecheatschool.server.repository;
+package com.thecheatschool.thecheatschool.server.repository.tcs;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;

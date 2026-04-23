@@ -1,4 +1,4 @@
-package com.thecheatschool.thecheatschool.server.repository;
+package com.thecheatschool.thecheatschool.server.repository.em;
 
 import com.thecheatschool.thecheatschool.server.model.em.EMContact;
 import org.springframework.data.jpa.repository.JpaRepository;

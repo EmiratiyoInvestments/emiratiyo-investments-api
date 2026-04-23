@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.thecheatschool.thecheatschool.server.model.em.EmiraAnalysis;
 import com.thecheatschool.thecheatschool.server.model.em.EmiraAnalysisRequest;
-import com.thecheatschool.thecheatschool.server.repository.EmiraAnalysisRepository;
+import com.thecheatschool.thecheatschool.server.service.em.EmiraHistoryService;
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import jakarta.annotation.PostConstruct;
@@ -34,15 +34,15 @@ public class EmiraService {
 
     private final ObjectMapper objectMapper;
     private final CircuitBreaker circuitBreaker;
-    private final EmiraAnalysisRepository emiraAnalysisRepository;
+    private final EmiraHistoryService emiraHistoryService;
 
     private static final String GEMINI_URL_TEMPLATE =
         "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=%s";
 
-    public EmiraService(ObjectMapper objectMapper, CircuitBreakerRegistry circuitBreakerRegistry, EmiraAnalysisRepository emiraAnalysisRepository) {
+    public EmiraService(ObjectMapper objectMapper, CircuitBreakerRegistry circuitBreakerRegistry, EmiraHistoryService emiraHistoryService) {
         this.objectMapper = objectMapper;
         this.circuitBreaker = circuitBreakerRegistry.circuitBreaker("emiraGemini");
-        this.emiraAnalysisRepository = emiraAnalysisRepository;
+        this.emiraHistoryService = emiraHistoryService;
     }
 
     @PostConstruct
@@ -151,9 +151,9 @@ public class EmiraService {
 
             emitter.complete();
 
-            // Save to history
+            // Save to history (also evicts the Redis list cache via EmiraHistoryService)
             try {
-                emiraAnalysisRepository.save(
+                emiraHistoryService.save(
                     EmiraAnalysis.builder()
                         .area(request.getArea())
                         .analysisType(request.getAnalysisType().toString())

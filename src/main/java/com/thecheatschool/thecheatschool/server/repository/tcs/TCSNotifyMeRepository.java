@@ -1,4 +1,4 @@
-package com.thecheatschool.thecheatschool.server.repository;
+package com.thecheatschool.thecheatschool.server.repository.tcs;
 
 import com.thecheatschool.thecheatschool.server.model.tcs.TCSNotifyMeSignup;
 import org.springframework.data.jpa.repository.JpaRepository;

@@ -1,10 +1,10 @@
-package com.thecheatschool.thecheatschool.server.controller;
+package com.thecheatschool.thecheatschool.server.controller.em;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.thecheatschool.thecheatschool.server.model.ApiResponse;
 import com.thecheatschool.thecheatschool.server.model.em.EMBusinessSetupRequest;
 import com.thecheatschool.thecheatschool.server.model.em.EMBusinessSetupSubmission;
-import com.thecheatschool.thecheatschool.server.repository.EMBusinessSetupRepository;
+import com.thecheatschool.thecheatschool.server.repository.em.EMBusinessSetupRepository;
 import com.thecheatschool.thecheatschool.server.service.em.EMBusinessSetupService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -30,37 +30,40 @@ public class EMBusinessSetupController {
 
     @GetMapping
     public ResponseEntity<ApiResponse<String>> info() {
-        return ResponseEntity.ok(new ApiResponse<>("success", "Use POST with JSON body to submit the Emiratiyo Investments business setup form."));
+        return ResponseEntity.ok(new ApiResponse<>("success",
+                "Use POST with JSON body to submit the Emiratiyo Investments business setup form."));
     }
 
     @PostMapping
     public ResponseEntity<ApiResponse<String>> submit(@Valid @RequestBody EMBusinessSetupRequest request) {
-        log.info("Received EM business setup submission from: {}", request.getEmail());
+        log.info("Received business setup submission from: {}", request.getEmail());
 
         try {
             businessSetupService.processBusinessSetup(request);
-            return ResponseEntity.ok(new ApiResponse<>("success", "Thanks! We'll contact you soon about your business setup."));
+            return ResponseEntity
+                    .ok(new ApiResponse<>("success", "Thanks! We'll contact you soon about your business setup."));
         } catch (Exception e) {
-            log.error("Error processing EM business setup", e);
+            log.error("Error processing business setup", e);
             return ResponseEntity.status(500).body(new ApiResponse<>("error", "Failed to submit. Please try again."));
         }
     }
 
     @GetMapping("/failed")
     public ResponseEntity<ApiResponse<List<EMBusinessSetupSubmission>>> getFailedSubmissions() {
-        log.info("Fetching failed EM business setup submissions");
+        log.info("Fetching failed business setup submissions");
         List<EMBusinessSetupSubmission> failed = businessSetupRepository.findByStatus("EMAIL_FAILED");
         return ResponseEntity.ok(new ApiResponse<>("success", failed));
     }
 
-    @PostMapping(consumes = {MediaType.ALL_VALUE})
+    @PostMapping(consumes = { MediaType.ALL_VALUE })
     public ResponseEntity<ApiResponse<String>> submitFallback(@RequestBody String body) {
         try {
             EMBusinessSetupRequest request = objectMapper.readValue(body, EMBusinessSetupRequest.class);
             return submit(request);
         } catch (Exception ex) {
             log.error("Failed to parse EM business setup request body", ex);
-            return ResponseEntity.status(400).body(new ApiResponse<>("error", "Invalid request body. Please send JSON with application/json Content-Type."));
+            return ResponseEntity.status(400).body(new ApiResponse<>("error",
+                    "Invalid request body. Please send JSON with application/json Content-Type."));
         }
     }
 }

@@ -1,4 +1,4 @@
-package com.thecheatschool.thecheatschool.server.controller;
+package com.thecheatschool.thecheatschool.server.controller.em;
 
 import com.thecheatschool.thecheatschool.server.model.em.EmiraAnalysisRequest;
 import com.thecheatschool.thecheatschool.server.service.em.EmiraService;
@@ -11,6 +11,9 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 
 @Slf4j
 @RestController
@@ -36,8 +39,7 @@ public class EmiraController {
         // 3 minute timeout for long Gemini responses
         SseEmitter emitter = new SseEmitter(180_000L);
 
-        // Validate secret
-        if (internalKey == null || !internalKey.equals(internalSecret)) {
+        if (!isAuthorized(internalKey)) {
             log.warn("Unauthorized access attempt to Emira Analyst");
             try {
                 emitter.send(SseEmitter.event().name("error").data("Unauthorised"));
@@ -74,5 +76,13 @@ public class EmiraController {
         }
 
         return emitter;
+    }
+
+    private boolean isAuthorized(String key) {
+        if (key == null) return false;
+        return MessageDigest.isEqual(
+                key.getBytes(StandardCharsets.UTF_8),
+                internalSecret.getBytes(StandardCharsets.UTF_8)
+        );
     }
 }

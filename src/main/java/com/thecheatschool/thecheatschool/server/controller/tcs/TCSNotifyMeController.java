@@ -1,10 +1,10 @@
-package com.thecheatschool.thecheatschool.server.controller;
+package com.thecheatschool.thecheatschool.server.controller.tcs;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.thecheatschool.thecheatschool.server.model.ApiResponse;
 import com.thecheatschool.thecheatschool.server.model.tcs.TCSNotifyMeRequest;
 import com.thecheatschool.thecheatschool.server.model.tcs.TCSNotifyMeSignup;
-import com.thecheatschool.thecheatschool.server.repository.TCSNotifyMeRepository;
+import com.thecheatschool.thecheatschool.server.repository.tcs.TCSNotifyMeRepository;
 import com.thecheatschool.thecheatschool.server.service.tcs.TCSNotifyMeService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
