@@ -1,9 +1,9 @@
-package com.thecheatschool.thecheatschool.server.controller;
+package com.thecheatschool.thecheatschool.server.controller.tcs;
 
 import com.thecheatschool.thecheatschool.server.model.ApiResponse;
 import com.thecheatschool.thecheatschool.server.model.tcs.TCSContact;
 import com.thecheatschool.thecheatschool.server.model.tcs.TCSContactRequest;
-import com.thecheatschool.thecheatschool.server.repository.TCSContactRepository;
+import com.thecheatschool.thecheatschool.server.repository.tcs.TCSContactRepository;
 import com.thecheatschool.thecheatschool.server.service.tcs.TCSContactService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.validation.Valid;
@@ -62,9 +62,6 @@ public class TCSContactController {
         return ResponseEntity.ok(new ApiResponse<>("success", failed));
     }
 
-    /**
-     * Fallback handler to tolerate mis-labeled content-types (e.g., text/plain) and still parse JSON.
-     */
     @PostMapping(consumes = {MediaType.ALL_VALUE})
     public ResponseEntity<ApiResponse<String>> submitContactFormFallback(@RequestBody String body) {
         try {

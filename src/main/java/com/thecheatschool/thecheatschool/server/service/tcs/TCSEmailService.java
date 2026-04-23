@@ -3,6 +3,7 @@ package com.thecheatschool.thecheatschool.server.service.tcs;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -12,9 +13,6 @@ import com.thecheatschool.thecheatschool.server.model.tcs.TCSNotifyMeRequest;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Email service for sending emails using Resend API.
- */
 @Service
 @Slf4j
 public class TCSEmailService {
@@ -32,6 +30,7 @@ public class TCSEmailService {
      *
      * @param request Contact request object containing email and other details.
      */
+    @Async("taskExecutor")
     public void sendContactEmail(TCSContactRequest request) {
         String url = "https://api.resend.com/emails";
         String emailHash = maskEmail(request.getEmail());
@@ -64,10 +63,10 @@ public class TCSEmailService {
             }
         } catch (Exception e) {
             log.error("Error sending email via Resend API for contact email: {}", emailHash, e);
-            throw new RuntimeException("Failed to send email", e);
         }
     }
 
+    @Async("taskExecutor")
     public void sendNotifyMeEmail(TCSNotifyMeRequest request) {
         String url = "https://api.resend.com/emails";
         String emailHash = maskEmail(request.getEmail());
@@ -98,7 +97,6 @@ public class TCSEmailService {
             }
         } catch (Exception e) {
             log.error("Error sending notify-me email via Resend API for email: {}", emailHash, e);
-            throw new RuntimeException("Failed to send notify-me email", e);
         }
     }
 
@@ -189,6 +187,7 @@ public class TCSEmailService {
     }
 
     // Send confirmation email to the USER
+    @Async("taskExecutor")
     public void sendConfirmationEmailToUser(TCSContactRequest request) {
         String url = "https://api.resend.com/emails";
         String emailHash = maskEmail(request.getEmail());
@@ -220,62 +219,6 @@ public class TCSEmailService {
             log.warn("Error sending confirmation email to user, proceeding with main process", e);
         }
     }
-
-    // Build the HTML for user confirmation email
-//    private String buildUserConfirmationHtml(ContactRequest request) {
-//        return String.format("""
-//        <div style="font-family: Arial, sans-serif; padding: 30px; max-width: 600px; margin: 0 auto; background-color: #f9f9f9;">
-//            <div style="background-color: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
-//                <h1 style="color: #4CAF50; margin-bottom: 20px;">Thank You, %s! 🎉</h1>
-//
-//                <p style="font-size: 16px; color: #333; line-height: 1.6;">
-//                    Thanks for reaching out to <strong>The Cheat School</strong>!
-//                </p>
-//
-//                <p style="font-size: 16px; color: #333; line-height: 1.6;">
-//                    We've received your registration and our team will get back to you soon.
-//                </p>
-//
-//                <div style="background-color: #f0f8ff; padding: 20px; border-left: 4px solid #4CAF50; margin: 30px 0;">
-//                    <p style="margin: 0; font-size: 16px; color: #333;">
-//                        <strong>Meanwhile, join our WhatsApp community for:</strong>
-//                    </p>
-//                    <ul style="margin-top: 10px; color: #555;">
-//                        <li>Latest updates and resources</li>
-//                        <li>Connect with other students</li>
-//                        <li>Exclusive study materials</li>
-//                    </ul>
-//                    <a href="https://chat.whatsapp.com/YOUR_WHATSAPP_LINK"
-//                       style="display: inline-block; margin-top: 15px; padding: 12px 30px; background-color: #25D366; color: white; text-decoration: none; border-radius: 5px; font-weight: bold;">
-//                        Join WhatsApp Community
-//                    </a>
-//                </div>
-//
-//                <div style="text-align: center; margin: 30px 0;">
-//                            <a href="https://www.linkedin.com/company/the-cheat-school/?originalSubdomain=in"\s
-//                               style="display: inline-block; margin: 10px; padding: 12px 25px; background-color: #0088cc; color: white; text-decoration: none; border-radius: 5px;">
-//                                LinkedIn
-//                            </a>
-//                            <a href="https://www.instagram.com/thecheatschool"\s
-//                               style="display: inline-block; margin: 10px; padding: 12px 25px; background-color: #E4405F; color: white; text-decoration: none; border-radius: 5px;">
-//                                Instagram
-//                            </a>
-//                        </div>
-//
-//                <p style="font-size: 14px; color: #666; margin-top: 30px;">
-//                    If you have any urgent queries, feel free to reply to this email.
-//                </p>
-//
-//                <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
-//
-//                <p style="font-size: 12px; color: #999; text-align: center;">
-//                    The Cheat School Team<br>
-//                    <a href="https://thecheatschool.com" style="color: #4CAF50;">www.thecheatschool.com</a>
-//                </p>
-//            </div>
-//        </div>
-//        """, request.getFullName());
-//    }
 
     private String maskEmail(String email) {
         if (email == null || !email.contains("@")) {

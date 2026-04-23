@@ -1,10 +1,10 @@
-package com.thecheatschool.thecheatschool.server.controller;
+package com.thecheatschool.thecheatschool.server.controller.em;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.thecheatschool.thecheatschool.server.model.ApiResponse;
 import com.thecheatschool.thecheatschool.server.model.em.EMContact;
 import com.thecheatschool.thecheatschool.server.model.em.EMContactRequest;
-import com.thecheatschool.thecheatschool.server.repository.EMContactRepository;
+import com.thecheatschool.thecheatschool.server.repository.em.EMContactRepository;
 import com.thecheatschool.thecheatschool.server.service.em.EMContactService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -35,7 +35,7 @@ public class EMContactController {
 
     @PostMapping
     public ResponseEntity<ApiResponse<String>> submitContactForm(@Valid @RequestBody EMContactRequest request) {
-        log.info("Received EM contact form submission from: {}", request.getEmail());
+        log.info("Received contact form submission from: {}", request.getEmail());
 
         try {
             contactService.processContactForm(request);
@@ -48,7 +48,7 @@ public class EMContactController {
 
     @GetMapping("/failed")
     public ResponseEntity<ApiResponse<List<EMContact>>> getFailedSubmissions() {
-        log.info("Fetching failed EM contact submissions");
+        log.info("Fetching failed contact submissions");
         List<EMContact> failed = contactRepository.findByStatus("EMAIL_FAILED");
         return ResponseEntity.ok(new ApiResponse<>("success", failed));
     }
@@ -59,7 +59,7 @@ public class EMContactController {
             EMContactRequest request = objectMapper.readValue(body, EMContactRequest.class);
             return submitContactForm(request);
         } catch (Exception ex) {
-            log.error("Failed to parse EM contact request body", ex);
+            log.error("Failed to parse contact request body", ex);
             return ResponseEntity.status(400).body(new ApiResponse<>("error", "Invalid request body. Please send JSON with application/json Content-Type."));
         }
     }

@@ -1,18 +1,15 @@
 package com.thecheatschool.thecheatschool.server.service.tcs;
 
-import com.thecheatschool.thecheatschool.server.model.queue.ContactEmailJob;
 import com.thecheatschool.thecheatschool.server.model.tcs.TCSNotifyMeRequest;
 import com.thecheatschool.thecheatschool.server.model.tcs.TCSNotifyMeSignup;
-import com.thecheatschool.thecheatschool.server.repository.TCSNotifyMeRepository;
-import com.thecheatschool.thecheatschool.server.service.queue.ContactEmailPublisher;
+import com.thecheatschool.thecheatschool.server.repository.tcs.TCSNotifyMeRepository;
 import com.thecheatschool.thecheatschool.server.util.InputSanitizer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.time.Instant;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -21,10 +18,6 @@ public class TCSNotifyMeService {
 
     private final TCSNotifyMeRepository notifyMeRepository;
     private final TCSEmailService emailService;
-    private final ContactEmailPublisher contactEmailPublisher;
-
-    @Value("${queue.enabled:false}")
-    private boolean queueEnabled;
 
     public void processNotifyMe(TCSNotifyMeRequest request) {
         String requestId = generateRequestId();
@@ -35,38 +28,19 @@ public class TCSNotifyMeService {
                 .orElseGet(TCSNotifyMeSignup::new);
 
         boolean isNew = (signup.getId() == null);
-
         signup.setName(InputSanitizer.sanitize(request.getName()));
         signup.setEmail(request.getEmail());
         signup.setPhoneNumber(InputSanitizer.sanitize(request.getPhoneNumber()));
-
-        if (isNew) {
-            signup.setSubmittedAt(LocalDateTime.now());
-        }
+        if (isNew) signup.setSubmittedAt(LocalDateTime.now());
         signup.setUpdatedAt(LocalDateTime.now());
-        signup.setStatus("PENDING_EMAIL");
-        signup = notifyMeRepository.save(signup);
+        signup.setStatus("SUBMITTED");
+        notifyMeRepository.save(signup);
 
-        if (queueEnabled) {
-            log.info("[{}] Queue enabled - publishing notify-me email job for submissionId: {}", requestId, signup.getId());
-            ContactEmailJob job = new ContactEmailJob(ContactEmailJob.Type.TCS_NOTIFY_ME, signup.getId(), requestId, Instant.now());
-            contactEmailPublisher.publishTcs(job);
-            return;
-        }
-
-        try {
-            emailService.sendNotifyMeEmail(request);
-            signup.setStatus("SENT");
-            notifyMeRepository.save(signup);
-            log.info("[{}] Notify-me processed successfully - email delivery successful", requestId);
-        } catch (Exception e) {
-            log.warn("[{}] Notify-me email delivery failed, marking as EMAIL_FAILED", requestId);
-            signup.setStatus("EMAIL_FAILED");
-            notifyMeRepository.save(signup);
-        }
+        emailService.sendNotifyMeEmail(request); // async — returns immediately
+        log.info("[{}] Notify-me saved, email dispatched asynchronously", requestId);
     }
 
     private String generateRequestId() {
-        return "NOTIFY-REQ-" + System.currentTimeMillis() + "-" + (int) (Math.random() * 10000);
+        return "NOTIFY-REQ-" + UUID.randomUUID().toString().replace("-", "").substring(0, 8).toUpperCase();
     }
 }

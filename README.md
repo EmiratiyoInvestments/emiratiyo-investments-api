@@ -9,7 +9,7 @@ A unified Spring Boot monolith backend serving two distinct platforms: The Cheat
 - **Controllers** — Handle incoming HTTP requests for both TCS and EM
 - **Services** — Domain-specific logic (e.g. `EMContactService` vs `TCSContactService`)
 - **Models/Repositories** — Dedicated data entities and JPA repositories per service
-- **Shared Infrastructure** — RabbitMQ (email), Bucket4j (rate limiting), Resilience4j (circuit breaking)
+- **Shared Infrastructure** — Spring `@Async` thread pool (email), Bucket4j (rate limiting), Resilience4j (circuit breaking), Upstash Redis (caching)
 
 ---
 
@@ -37,12 +37,14 @@ Deployed on **Fly.io** · Region: `bom` (Mumbai)
 | Framework | Spring Boot 3.5.7 |
 | Database | PostgreSQL (Neon serverless) |
 | ORM | Spring Data JPA / Hibernate |
-| Email | Resend API |
+| Email | Resend API (via `RestTemplate`) |
 | AI | Google Gemini 2.5 Flash |
-| Message Queue | RabbitMQ / CloudAMQP (optional) |
-| Rate Limiting | Bucket4j |
+| Async | Spring `@Async` + `ThreadPoolTaskExecutor` |
+| Cache | Upstash Redis (Spring Cache) |
+| Rate Limiting | In-memory sliding window interceptor |
 | Circuit Breaker | Resilience4j |
-| Async/Streaming | Spring WebFlux (SSE) |
+| Streaming | Spring SSE (`SseEmitter`) |
+| Monitoring | Spring Boot Admin (embedded) |
 | Container | Docker |
 | Deployment | Fly.io |
 
@@ -53,21 +55,19 @@ Deployed on **Fly.io** · Region: `bom` (Mumbai)
 ```
 thecheatschoolserver/
 ├── src/main/java/com/thecheatschool/thecheatschool/server/
-│   ├── config/                  # CORS, RabbitMQ, rate limiting, async config
+│   ├── config/                  # CORS, Redis, Security, Async, RateLimiter configs
 │   ├── controller/              # REST controllers for TCS, EM, and shared endpoints
 │   ├── exception/               # Global exception handler
 │   ├── model/
 │   │   ├── tcs/                 # TCS request/entity models
-│   │   ├── em/                  # EM request/entity models (incl. Emira AI)
-│   │   └── queue/               # RabbitMQ job models
+│   │   └── em/                  # EM request/entity models (incl. Emira AI)
 │   ├── repository/              # Spring Data JPA repositories
 │   ├── service/
 │   │   ├── tcs/                 # TCS business logic + email service
-│   │   ├── em/                  # EM business logic, email service, Emira AI service
-│   │   └── queue/               # RabbitMQ consumer/publisher
-│   └── util/                    # Input sanitizer utility
+│   │   └── em/                  # EM business logic, email service, Emira AI service
+│   └── util/                    # Input sanitizer, rate-limiting interceptor
 ├── src/main/resources/
-│   └── application-local.properties   # Local environment configuration
+│   └── application.properties   # All environment configuration
 ├── Dockerfile
 ├── fly.toml                     # Fly.io deployment config
 └── pom.xml
@@ -77,7 +77,7 @@ thecheatschoolserver/
 
 ## Getting Started
 
-**Prerequisites:** Java 17+, Maven 3.6+, PostgreSQL or Neon.tech, RabbitMQ (optional)
+**Prerequisites:** Java 17+, Maven 3.6+, PostgreSQL (or Neon.tech), Upstash Redis
 
 ```bash
 git clone https://github.com/EmiratiyoInvestments/emiratiyo-investments-api.git
@@ -110,6 +110,25 @@ flyctl logs
 ```
 
 See [docs/tcs/DEPLOYMENT.md](docs/tcs/DEPLOYMENT.md) and [docs/emiratiyo/DEPLOYMENT.md](docs/emiratiyo/DEPLOYMENT.md) for full details.
+
+---
+
+## Monitoring
+
+This server embeds **Spring Boot Admin** — a full operational dashboard running inside the same process.
+
+| Environment | URL |
+|---|---|
+| Production | [https://thecheatschool-api.fly.dev/](https://thecheatschool-api.fly.dev/) |
+
+Navigate to the root URL and log in with the credentials configured in `application.properties`:
+
+```
+Username: admin
+Password: tcs-monitor-2025
+```
+
+The dashboard exposes: health indicators, JVM metrics, live loggers, environment variables, bean graph, thread dump, and Redis cache stats — all without a separate admin process.
 
 ---
 

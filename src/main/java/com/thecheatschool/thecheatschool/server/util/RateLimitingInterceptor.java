@@ -1,4 +1,4 @@
-package com.thecheatschool.thecheatschool.server.config;
+package com.thecheatschool.thecheatschool.server.util;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -43,7 +43,8 @@ public class RateLimitingInterceptor implements HandlerInterceptor {
             log.warn("Rate limit exceeded for IP: {}", clientIp);
             response.setStatus(HttpStatus.TOO_MANY_REQUESTS.value());
             response.setContentType("application/json");
-            response.getWriter().write("{\"status\": \"error\", \"message\": \"Too many requests. Maximum 5 requests per minute allowed.\"}");
+            response.getWriter().write(
+                    "{\"status\": \"error\", \"message\": \"Too many requests. Maximum 5 requests per minute allowed.\"}");
             return false;
         }
 
@@ -51,9 +52,6 @@ public class RateLimitingInterceptor implements HandlerInterceptor {
         return true;
     }
 
-    /**
-     * Extracts client IP from request, considering X-Forwarded-For header for proxies
-     */
     private String getClientIp(HttpServletRequest request) {
         String xForwardedFor = request.getHeader("X-Forwarded-For");
         if (xForwardedFor != null && !xForwardedFor.isEmpty()) {
@@ -63,9 +61,6 @@ public class RateLimitingInterceptor implements HandlerInterceptor {
         return request.getRemoteAddr();
     }
 
-    /**
-     * Helper class to track request counts and timestamps
-     */
     private static class RequestTracker {
         private long[] timestamps = new long[MAX_REQUESTS];
         private int currentIndex = 0;
@@ -74,12 +69,9 @@ public class RateLimitingInterceptor implements HandlerInterceptor {
         synchronized boolean isRateLimited() {
             long now = System.currentTimeMillis();
 
-            // If we haven't filled the slots yet
             if (!isFull) {
                 return false;
             }
-
-            // Check if the oldest request is still within the time window
             return (now - timestamps[currentIndex]) < TIME_WINDOW_MS;
         }
 

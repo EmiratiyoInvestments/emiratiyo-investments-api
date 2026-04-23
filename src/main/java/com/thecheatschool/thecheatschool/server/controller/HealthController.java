@@ -1,7 +1,8 @@
 package com.thecheatschool.thecheatschool.server.controller;
 
 import com.thecheatschool.thecheatschool.server.model.ApiResponse;
-import com.thecheatschool.thecheatschool.server.repository.TCSContactRepository;
+import com.thecheatschool.thecheatschool.server.repository.tcs.TCSContactRepository;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -26,8 +27,6 @@ public class HealthController {
         Map<String, Object> details = new HashMap<>();
 
         boolean dbHealthy = false;
-
-        // Basic DB health: try a lightweight query
         try {
             long count = contactRepository.count();
             dbHealthy = true;
@@ -53,6 +52,3 @@ public class HealthController {
         return ResponseEntity.ok(body);
     }
 }
-
-
-
