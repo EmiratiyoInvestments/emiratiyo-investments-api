@@ -30,19 +30,18 @@ public class EMContactController {
 
     @GetMapping
     public ResponseEntity<ApiResponse<String>> contactInfo() {
-        return ResponseEntity.ok(new ApiResponse<>("success", "Use POST with JSON body to submit the Emiratiyo Investments contact form."));
+        return ResponseEntity.ok(ApiResponse.success("Use POST with JSON body to submit the Emiratiyo Investments contact form."));
     }
 
     @PostMapping
     public ResponseEntity<ApiResponse<String>> submitContactForm(@Valid @RequestBody EMContactRequest request) {
         log.info("Received contact form submission from: {}", request.getEmail());
-
         try {
             contactService.processContactForm(request);
-            return ResponseEntity.ok(new ApiResponse<>("success", "Message sent successfully! We'll get back to you soon."));
+            return ResponseEntity.ok(ApiResponse.success("Message sent successfully! We'll get back to you soon."));
         } catch (Exception e) {
             log.error("Error processing EM contact form", e);
-            return ResponseEntity.status(500).body(new ApiResponse<>("error", "Failed to send message. Please try again."));
+            return ResponseEntity.status(500).body(ApiResponse.error("Failed to send message. Please try again."));
         }
     }
 
@@ -50,7 +49,7 @@ public class EMContactController {
     public ResponseEntity<ApiResponse<List<EMContact>>> getFailedSubmissions() {
         log.info("Fetching failed contact submissions");
         List<EMContact> failed = contactRepository.findByStatus("EMAIL_FAILED");
-        return ResponseEntity.ok(new ApiResponse<>("success", failed));
+        return ResponseEntity.ok(ApiResponse.success(failed));
     }
 
     @PostMapping(consumes = {MediaType.ALL_VALUE})
@@ -60,7 +59,7 @@ public class EMContactController {
             return submitContactForm(request);
         } catch (Exception ex) {
             log.error("Failed to parse contact request body", ex);
-            return ResponseEntity.status(400).body(new ApiResponse<>("error", "Invalid request body. Please send JSON with application/json Content-Type."));
+            return ResponseEntity.status(400).body(ApiResponse.error("Invalid request body. Please send JSON with application/json Content-Type."));
         }
     }
 }

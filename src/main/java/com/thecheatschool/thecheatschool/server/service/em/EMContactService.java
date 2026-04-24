@@ -4,12 +4,12 @@ import com.thecheatschool.thecheatschool.server.model.em.EMContact;
 import com.thecheatschool.thecheatschool.server.model.em.EMContactRequest;
 import com.thecheatschool.thecheatschool.server.repository.em.EMContactRepository;
 import com.thecheatschool.thecheatschool.server.util.InputSanitizer;
+import com.thecheatschool.thecheatschool.server.util.RequestIdUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -20,7 +20,7 @@ public class EMContactService {
     private final EMContactRepository contactRepository;
 
     public void processContactForm(EMContactRequest request) {
-        String requestId = generateRequestId();
+        String requestId = RequestIdUtil.generate("EM-REQ-");
 
         log.info("[{}] Processing EM contact form submission", requestId);
 
@@ -41,9 +41,5 @@ public class EMContactService {
         submission.setEmail(request.getEmail());
         submission.setMessage(InputSanitizer.sanitize(request.getMessage()));
         return submission;
-    }
-
-    private String generateRequestId() {
-        return "EM-REQ-" + UUID.randomUUID().toString().replace("-", "").substring(0, 8).toUpperCase();
     }
 }

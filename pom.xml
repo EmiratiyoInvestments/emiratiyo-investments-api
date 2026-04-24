@@ -5,14 +5,14 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>3.5.7</version>
+		<version>3.4.5</version>
 		<relativePath/> 
 	</parent>
 	<groupId>com.thecheatschool</groupId>
 	<artifactId>thecheatschoolserver</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>thecheatschoolserver</name>
-	<description>Demo project for Spring Boot</description>
+	<description>thecheatschoolserver</description>
 	<url/>
 	<licenses>
 		<license/>
@@ -59,7 +59,13 @@
 		<dependency>
 			<groupId>de.codecentric</groupId>
 			<artifactId>spring-boot-admin-starter-server</artifactId>
-			<version>3.3.5</version>
+			<version>3.4.4</version>
+		</dependency>
+
+		<dependency>
+			<groupId>de.codecentric</groupId>
+			<artifactId>spring-boot-admin-starter-client</artifactId>
+			<version>3.4.4</version>
 		</dependency>
 
 		<dependency>

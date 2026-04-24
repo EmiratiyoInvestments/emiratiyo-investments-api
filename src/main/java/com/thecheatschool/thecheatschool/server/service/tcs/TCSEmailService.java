@@ -1,5 +1,6 @@
 package com.thecheatschool.thecheatschool.server.service.tcs;
 
+import com.thecheatschool.thecheatschool.server.util.EmailUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
@@ -221,18 +222,6 @@ public class TCSEmailService {
     }
 
     private String maskEmail(String email) {
-        if (email == null || !email.contains("@")) {
-            return "unknown";
-        }
-        String[] parts = email.split("@");
-        String localPart = parts[0];
-        String domain = parts[1];
-
-        if (localPart.length() <= 2) {
-            return "*@" + domain;
-        }
-
-        String masked = localPart.charAt(0) + "*".repeat(localPart.length() - 2) + localPart.charAt(localPart.length() - 1) + "@" + domain;
-        return masked;
+        return EmailUtils.maskEmail(email);
     }
 }

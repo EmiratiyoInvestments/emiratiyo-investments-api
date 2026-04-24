@@ -30,21 +30,18 @@ public class EMBusinessSetupController {
 
     @GetMapping
     public ResponseEntity<ApiResponse<String>> info() {
-        return ResponseEntity.ok(new ApiResponse<>("success",
-                "Use POST with JSON body to submit the Emiratiyo Investments business setup form."));
+        return ResponseEntity.ok(ApiResponse.success("Use POST with JSON body to submit the Emiratiyo Investments business setup form."));
     }
 
     @PostMapping
     public ResponseEntity<ApiResponse<String>> submit(@Valid @RequestBody EMBusinessSetupRequest request) {
         log.info("Received business setup submission from: {}", request.getEmail());
-
         try {
             businessSetupService.processBusinessSetup(request);
-            return ResponseEntity
-                    .ok(new ApiResponse<>("success", "Thanks! We'll contact you soon about your business setup."));
+            return ResponseEntity.ok(ApiResponse.success("Thanks! We'll contact you soon about your business setup."));
         } catch (Exception e) {
             log.error("Error processing business setup", e);
-            return ResponseEntity.status(500).body(new ApiResponse<>("error", "Failed to submit. Please try again."));
+            return ResponseEntity.status(500).body(ApiResponse.error("Failed to submit. Please try again."));
         }
     }
 
@@ -52,18 +49,18 @@ public class EMBusinessSetupController {
     public ResponseEntity<ApiResponse<List<EMBusinessSetupSubmission>>> getFailedSubmissions() {
         log.info("Fetching failed business setup submissions");
         List<EMBusinessSetupSubmission> failed = businessSetupRepository.findByStatus("EMAIL_FAILED");
-        return ResponseEntity.ok(new ApiResponse<>("success", failed));
+        return ResponseEntity.ok(ApiResponse.success(failed));
     }
 
-    @PostMapping(consumes = { MediaType.ALL_VALUE })
+    //fallback
+    @PostMapping(consumes = {MediaType.ALL_VALUE})
     public ResponseEntity<ApiResponse<String>> submitFallback(@RequestBody String body) {
         try {
             EMBusinessSetupRequest request = objectMapper.readValue(body, EMBusinessSetupRequest.class);
             return submit(request);
         } catch (Exception ex) {
             log.error("Failed to parse EM business setup request body", ex);
-            return ResponseEntity.status(400).body(new ApiResponse<>("error",
-                    "Invalid request body. Please send JSON with application/json Content-Type."));
+            return ResponseEntity.status(400).body(ApiResponse.error("Invalid request body. Please send JSON with application/json Content-Type."));
         }
     }
 }

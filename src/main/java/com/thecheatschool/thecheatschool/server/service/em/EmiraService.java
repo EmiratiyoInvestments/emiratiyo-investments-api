@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.thecheatschool.thecheatschool.server.model.em.EmiraAnalysis;
 import com.thecheatschool.thecheatschool.server.model.em.EmiraAnalysisRequest;
-import com.thecheatschool.thecheatschool.server.service.em.EmiraHistoryService;
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import jakarta.annotation.PostConstruct;
@@ -36,10 +35,10 @@ public class EmiraService {
     private final CircuitBreaker circuitBreaker;
     private final EmiraHistoryService emiraHistoryService;
 
-    private static final String GEMINI_URL_TEMPLATE =
-        "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=%s";
+    private static final String GEMINI_URL_TEMPLATE = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=%s";
 
-    public EmiraService(ObjectMapper objectMapper, CircuitBreakerRegistry circuitBreakerRegistry, EmiraHistoryService emiraHistoryService) {
+    public EmiraService(ObjectMapper objectMapper, CircuitBreakerRegistry circuitBreakerRegistry,
+            EmiraHistoryService emiraHistoryService) {
         this.objectMapper = objectMapper;
         this.circuitBreaker = circuitBreakerRegistry.circuitBreaker("emiraGemini");
         this.emiraHistoryService = emiraHistoryService;
@@ -54,7 +53,7 @@ public class EmiraService {
     @Async("taskExecutor")
     public void analyse(EmiraAnalysisRequest request, SseEmitter emitter) {
         log.info("=== EMIRA ANALYSE CALLED === type: {}, area: {}",
-            request.getAnalysisType(), request.getArea());
+                request.getAnalysisType(), request.getArea());
 
         if (!circuitBreaker.tryAcquirePermission()) {
             sendError(emitter, "Emira is temporarily unavailable. Please try again.");
@@ -72,16 +71,14 @@ public class EmiraService {
 
         if (!success) {
             circuitBreaker.onError(
-                System.currentTimeMillis() - startTime,
-                TimeUnit.MILLISECONDS,
-                new RuntimeException("Both Gemini keys failed")
-            );
+                    System.currentTimeMillis() - startTime,
+                    TimeUnit.MILLISECONDS,
+                    new RuntimeException("Both Gemini keys failed"));
             sendError(emitter, "Emira is temporarily unavailable. Please try again.");
         } else {
             circuitBreaker.onSuccess(
-                System.currentTimeMillis() - startTime,
-                TimeUnit.MILLISECONDS
-            );
+                    System.currentTimeMillis() - startTime,
+                    TimeUnit.MILLISECONDS);
         }
     }
 
@@ -97,9 +94,8 @@ public class EmiraService {
             conn.setReadTimeout(180_000);
 
             String body = String.format(
-                "{\"contents\":[{\"parts\":[{\"text\":%s}]}]}",
-                objectMapper.writeValueAsString(prompt)
-            );
+                    "{\"contents\":[{\"parts\":[{\"text\":%s}]}]}",
+                    objectMapper.writeValueAsString(prompt));
 
             try (OutputStream os = conn.getOutputStream()) {
                 os.write(body.getBytes(StandardCharsets.UTF_8));
@@ -113,9 +109,11 @@ public class EmiraService {
                         new InputStreamReader(conn.getErrorStream(), StandardCharsets.UTF_8))) {
                     StringBuilder errBody = new StringBuilder();
                     String errLine;
-                    while ((errLine = errReader.readLine()) != null) errBody.append(errLine);
+                    while ((errLine = errReader.readLine()) != null)
+                        errBody.append(errLine);
                     log.error("Gemini error body: {}", errBody.toString());
-                } catch (Exception ignored) {}
+                } catch (Exception ignored) {
+                }
                 return false;
             }
 
@@ -130,11 +128,11 @@ public class EmiraService {
 
             JsonNode root = objectMapper.readTree(responseBody.toString());
             String text = root
-                .path("candidates").get(0)
-                .path("content")
-                .path("parts").get(0)
-                .path("text")
-                .asText();
+                    .path("candidates").get(0)
+                    .path("content")
+                    .path("parts").get(0)
+                    .path("text")
+                    .asText();
 
             if (text == null || text.isEmpty()) {
                 log.error("Gemini returned empty text");
@@ -154,12 +152,11 @@ public class EmiraService {
             // Save to history (also evicts the Redis list cache via EmiraHistoryService)
             try {
                 emiraHistoryService.save(
-                    EmiraAnalysis.builder()
-                        .area(request.getArea())
-                        .analysisType(request.getAnalysisType().toString())
-                        .responseText(text)
-                        .build()
-                );
+                        EmiraAnalysis.builder()
+                                .area(request.getArea())
+                                .analysisType(request.getAnalysisType().toString())
+                                .responseText(text)
+                                .build());
                 log.info("Saved to history for area: {}", request.getArea());
             } catch (Exception e) {
                 log.error("Failed to save history", e);
@@ -189,94 +186,94 @@ public class EmiraService {
 
         return switch (request.getAnalysisType()) {
             case PRICE_FORECAST -> String.format("""
-                You are Emira, an expert Dubai real estate analyst 
-                for Emiratiyo Investments. Based on the market data 
-                provided and your knowledge of Dubai real estate, 
-                provide a price forecast for %s.
-                
-                Market Context: %s
-                Additional User Context: %s
-                
-                Structure your response exactly like this: 
-                CURRENT PRICE: [from market data] 
-                1 YEAR FORECAST: [price range AED/sqft + %% change] 
-                3 YEAR FORECAST: [price range AED/sqft + %% change] 
-                5 YEAR FORECAST: [price range AED/sqft + %% change] 
-                KEY DRIVERS: [3-4 bullet points] 
-                CONFIDENCE: [Low/Medium/High + one line reason] 
-                DISCLAIMER: This is an AI-assisted projection 
-                based on available data, not a financial guarantee.
-                """, area, marketContext, additionalContext);
+                    You are Emira, an expert Dubai real estate analyst
+                    for Emiratiyo Investments. Based on the market data
+                    provided and your knowledge of Dubai real estate,
+                    provide a price forecast for %s.
+
+                    Market Context: %s
+                    Additional User Context: %s
+
+                    Structure your response exactly like this:
+                    CURRENT PRICE: [from market data]
+                    1 YEAR FORECAST: [price range AED/sqft + %% change]
+                    3 YEAR FORECAST: [price range AED/sqft + %% change]
+                    5 YEAR FORECAST: [price range AED/sqft + %% change]
+                    KEY DRIVERS: [3-4 bullet points]
+                    CONFIDENCE: [Low/Medium/High + one line reason]
+                    DISCLAIMER: This is an AI-assisted projection
+                    based on available data, not a financial guarantee.
+                    """, area, marketContext, additionalContext);
             case RENTAL_YIELD -> String.format("""
-                You are Emira, an expert Dubai real estate analyst 
-                for Emiratiyo Investments. Based on the market data 
-                provided, provide a rental yield analysis for %s.
-                
-                Market Context: %s
-                Additional User Context: %s
-                
-                Structure your response exactly like this: 
-                CURRENT AVG RENT: [AED/year for apartment] 
-                GROSS YIELD: [%% range] 
-                NET YIELD: [%% range after typical costs] 
-                1 YEAR RENTAL INCOME: [on AED 2M property] 
-                3 YEAR RENTAL INCOME: [cumulative estimate] 
-                5 YEAR RENTAL INCOME: [cumulative estimate] 
-                RENTAL DEMAND OUTLOOK: [2-3 sentences] 
-                BEST PROPERTY TYPE: [apartment/villa + reason] 
-                DISCLAIMER: Estimates based on current market 
-                data and historical Dubai rental trends.
-                """, area, marketContext, additionalContext);
+                    You are Emira, an expert Dubai real estate analyst
+                    for Emiratiyo Investments. Based on the market data
+                    provided, provide a rental yield analysis for %s.
+
+                    Market Context: %s
+                    Additional User Context: %s
+
+                    Structure your response exactly like this:
+                    CURRENT AVG RENT: [AED/year for apartment]
+                    GROSS YIELD: [%% range]
+                    NET YIELD: [%% range after typical costs]
+                    1 YEAR RENTAL INCOME: [on AED 2M property]
+                    3 YEAR RENTAL INCOME: [cumulative estimate]
+                    5 YEAR RENTAL INCOME: [cumulative estimate]
+                    RENTAL DEMAND OUTLOOK: [2-3 sentences]
+                    BEST PROPERTY TYPE: [apartment/villa + reason]
+                    DISCLAIMER: Estimates based on current market
+                    data and historical Dubai rental trends.
+                    """, area, marketContext, additionalContext);
             case GROWTH_DRIVERS -> String.format("""
-                You are Emira, an expert Dubai real estate analyst 
-                for Emiratiyo Investments. Analyse the growth 
-                drivers for %s in Dubai.
-                
-                Market Context: %s
-                Additional User Context: %s
-                
-                Structure your response exactly like this: 
-                OVERALL OUTLOOK: [Bullish/Neutral/Bearish + reason] 
-                GOVERNMENT INITIATIVES: [relevant UAE/Dubai projects] 
-                INFRASTRUCTURE: [transport, developments nearby] 
-                DEMAND FACTORS: [who is buying and why] 
-                SUPPLY PIPELINE: [new units coming, impact] 
-                MARKET MOMENTUM: [from transaction data provided] 
-                VERDICT: [2-3 sentence summary]
-                """, area, marketContext, additionalContext);
+                    You are Emira, an expert Dubai real estate analyst
+                    for Emiratiyo Investments. Analyse the growth
+                    drivers for %s in Dubai.
+
+                    Market Context: %s
+                    Additional User Context: %s
+
+                    Structure your response exactly like this:
+                    OVERALL OUTLOOK: [Bullish/Neutral/Bearish + reason]
+                    GOVERNMENT INITIATIVES: [relevant UAE/Dubai projects]
+                    INFRASTRUCTURE: [transport, developments nearby]
+                    DEMAND FACTORS: [who is buying and why]
+                    SUPPLY PIPELINE: [new units coming, impact]
+                    MARKET MOMENTUM: [from transaction data provided]
+                    VERDICT: [2-3 sentence summary]
+                    """, area, marketContext, additionalContext);
             case RISK_ASSESSMENT -> String.format("""
-                You are Emira, an expert Dubai real estate analyst 
-                for Emiratiyo Investments. Provide a risk assessment 
-                for investing in %s right now.
-                
-                Market Context: %s
-                Additional User Context: %s
-                
-                Structure your response exactly like this: 
-                RISK LEVEL: [Low/Medium/High] 
-                OVERSUPPLY RISK: [assessment + evidence] 
-                MACRO RISKS: [global factors that could impact] 
-                LIQUIDITY RISK: [how easy to sell if needed] 
-                REGULATORY RISK: [any UAE policy considerations] 
-                MARKET TIMING: [good time to buy or wait?] 
-                RISK SUMMARY: [2-3 sentences]
-                """, area, marketContext, additionalContext);
+                    You are Emira, an expert Dubai real estate analyst
+                    for Emiratiyo Investments. Provide a risk assessment
+                    for investing in %s right now.
+
+                    Market Context: %s
+                    Additional User Context: %s
+
+                    Structure your response exactly like this:
+                    RISK LEVEL: [Low/Medium/High]
+                    OVERSUPPLY RISK: [assessment + evidence]
+                    MACRO RISKS: [global factors that could impact]
+                    LIQUIDITY RISK: [how easy to sell if needed]
+                    REGULATORY RISK: [any UAE policy considerations]
+                    MARKET TIMING: [good time to buy or wait?]
+                    RISK SUMMARY: [2-3 sentences]
+                    """, area, marketContext, additionalContext);
             case MARKET_PULSE -> String.format("""
-                You are Emira, an expert Dubai real estate analyst 
-                for Emiratiyo Investments. Based on the transaction 
-                data provided, give a market pulse reading for %s.
-                
-                Market Context: %s
-                Additional User Context: %s
-                
-                Structure your response exactly like this: 
-                TRANSACTION ACTIVITY: [volume vs Dubai average] 
-                PRICE TREND: [direction and momentum] 
-                OFF-PLAN VS READY: [split and what it signals] 
-                BUYER DEMAND: [strong/moderate/weak + reason] 
-                COMPARED TO DUBAI: [how area ranks overall] 
-                HOT OR NOT: [single word verdict + one line reason]
-                """, area, marketContext, additionalContext);
+                    You are Emira, an expert Dubai real estate analyst
+                    for Emiratiyo Investments. Based on the transaction
+                    data provided, give a market pulse reading for %s.
+
+                    Market Context: %s
+                    Additional User Context: %s
+
+                    Structure your response exactly like this:
+                    TRANSACTION ACTIVITY: [volume vs Dubai average]
+                    PRICE TREND: [direction and momentum]
+                    OFF-PLAN VS READY: [split and what it signals]
+                    BUYER DEMAND: [strong/moderate/weak + reason]
+                    COMPARED TO DUBAI: [how area ranks overall]
+                    HOT OR NOT: [single word verdict + one line reason]
+                    """, area, marketContext, additionalContext);
         };
     }
 }
