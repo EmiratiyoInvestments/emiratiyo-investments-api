@@ -9,8 +9,6 @@ import java.util.Optional;
 
 @Repository
 public interface TCSNotifyMeRepository extends JpaRepository<TCSNotifyMeSignup, Long> {
-
     Optional<TCSNotifyMeSignup> findByEmail(String email);
-
     List<TCSNotifyMeSignup> findByStatus(String status);
 }

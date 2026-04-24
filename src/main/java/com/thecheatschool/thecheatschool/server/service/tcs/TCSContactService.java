@@ -4,11 +4,12 @@ import com.thecheatschool.thecheatschool.server.model.tcs.TCSContact;
 import com.thecheatschool.thecheatschool.server.model.tcs.TCSContactRequest;
 import com.thecheatschool.thecheatschool.server.repository.tcs.TCSContactRepository;
 import com.thecheatschool.thecheatschool.server.util.InputSanitizer;
+import com.thecheatschool.thecheatschool.server.util.RequestIdUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -19,7 +20,7 @@ public class TCSContactService {
     private final TCSContactRepository contactRepository;
 
     public void processContactForm(TCSContactRequest request) {
-        String requestId = generateRequestId();
+        String requestId = RequestIdUtil.generate("REQ-");
 
         log.info("[{}] Processing contact form submission from college: {}, branch: {}",
                 requestId, request.getCollege(), request.getBranch());
@@ -37,7 +38,7 @@ public class TCSContactService {
     private TCSContact buildSubmission(TCSContactRequest request) {
         TCSContact submission = new TCSContact();
         submission.setFullName(InputSanitizer.sanitize(request.getFullName()));
-        submission.setEmail(request.getEmail()); // Email is already validated in request
+        submission.setEmail(request.getEmail());
         submission.setPhoneNumber(InputSanitizer.sanitize(request.getPhoneNumber()));
         submission.setCollege(InputSanitizer.sanitize(request.getCollege()));
         submission.setYearOfStudy(InputSanitizer.sanitize(request.getYearOfStudy()));
@@ -45,9 +46,5 @@ public class TCSContactService {
         submission.setHearAboutUs(InputSanitizer.sanitize(request.getHearAboutUs()));
         submission.setHearAboutUsOther(InputSanitizer.sanitize(request.getHearAboutUsOther()));
         return submission;
-    }
-
-    private String generateRequestId() {
-        return "REQ-" + UUID.randomUUID().toString().replace("-", "").substring(0, 8).toUpperCase();
     }
 }

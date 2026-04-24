@@ -4,6 +4,7 @@ import com.thecheatschool.thecheatschool.server.model.em.EMBusinessSetupRequest;
 import com.thecheatschool.thecheatschool.server.model.em.EMBusinessSetupSubmission;
 import com.thecheatschool.thecheatschool.server.repository.em.EMBusinessSetupRepository;
 import com.thecheatschool.thecheatschool.server.util.InputSanitizer;
+import com.thecheatschool.thecheatschool.server.util.RequestIdUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -19,7 +20,7 @@ public class EMBusinessSetupService {
     private final EMBusinessSetupRepository businessSetupRepository;
 
     public void processBusinessSetup(EMBusinessSetupRequest request) {
-        String requestId = generateRequestId();
+        String requestId = RequestIdUtil.generate("EM-BIZ-REQ-");
 
         log.info("[{}] Processing EM business setup submission", requestId);
 
@@ -40,9 +41,5 @@ public class EMBusinessSetupService {
         submission.setMobileNumber(InputSanitizer.sanitize(request.getMobileNumber()));
         submission.setCountryOfResidence(InputSanitizer.sanitize(request.getCountryOfResidence()));
         return submission;
-    }
-
-    private String generateRequestId() {
-        return "EM-BIZ-REQ-" + System.currentTimeMillis() + "-" + (int) (Math.random() * 10000);
     }
 }

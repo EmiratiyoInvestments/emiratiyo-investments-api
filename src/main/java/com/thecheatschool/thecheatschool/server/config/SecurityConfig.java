@@ -11,6 +11,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 
 @Configuration
 @EnableWebSecurity
@@ -26,11 +27,20 @@ public class SecurityConfig {
         public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
                 return http
                                 .authorizeHttpRequests(auth -> auth
-                                                .requestMatchers("/api/**", "/actuator/**", "/instances/**").permitAll()
+                                                .requestMatchers(
+                                                                "/assets/**", "/actuator/**", "/instances/**",
+                                                                "/api/**",
+                                                                "/login", "/logout", "/*.js", "/*.css", "/*.ico",
+                                                                "/*.png")
+                                                .permitAll()
                                                 .anyRequest().authenticated())
-                                .formLogin(Customizer.withDefaults())
+                                .formLogin(form -> form
+                                                .loginPage("/login")
+                                                .permitAll())
+                                .logout(logout -> logout.logoutUrl("/logout"))
                                 .httpBasic(Customizer.withDefaults())
                                 .csrf(csrf -> csrf
+                                                .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
                                                 .ignoringRequestMatchers("/api/**", "/instances/**", "/actuator/**"))
                                 .build();
         }

@@ -1,19 +1,18 @@
 package com.thecheatschool.thecheatschool.server.controller.tcs;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.thecheatschool.thecheatschool.server.model.ApiResponse;
 import com.thecheatschool.thecheatschool.server.model.tcs.TCSContact;
 import com.thecheatschool.thecheatschool.server.model.tcs.TCSContactRequest;
 import com.thecheatschool.thecheatschool.server.repository.tcs.TCSContactRepository;
 import com.thecheatschool.thecheatschool.server.service.tcs.TCSContactService;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
-
 import org.springframework.web.bind.annotation.*;
-import org.springframework.http.MediaType;
 
 import java.util.List;
 
@@ -31,27 +30,18 @@ public class TCSContactController {
 
     @GetMapping
     public ResponseEntity<ApiResponse<String>> contactInfo() {
-        return ResponseEntity.ok(
-                new ApiResponse<>("success", "Use POST with JSON body to submit the contact form.")
-        );
+        return ResponseEntity.ok(ApiResponse.success("Use POST with JSON body to submit the contact form."));
     }
 
     @PostMapping
-    public ResponseEntity<ApiResponse<String>> submitContactForm(
-            @Valid @RequestBody TCSContactRequest request) {
-
+    public ResponseEntity<ApiResponse<String>> submitContactForm(@Valid @RequestBody TCSContactRequest request) {
         log.info("Received contact form submission from: {}", request.getEmail());
-
         try {
             contactService.processContactForm(request);
-            return ResponseEntity.ok(
-                    new ApiResponse<>("success", "Message sent successfully! We'll get back to you soon.")
-            );
+            return ResponseEntity.ok(ApiResponse.success("Message sent successfully! We'll get back to you soon."));
         } catch (Exception e) {
             log.error("Error processing contact form", e);
-            return ResponseEntity.status(500).body(
-                    new ApiResponse<>("error", "Failed to send message. Please try again or contact us at thecheatschoolcode@gmail.com")
-            );
+            return ResponseEntity.status(500).body(ApiResponse.error("Failed to send message. Please try again or contact us at thecheatschoolcode@gmail.com"));
         }
     }
 
@@ -59,7 +49,7 @@ public class TCSContactController {
     public ResponseEntity<ApiResponse<List<TCSContact>>> getFailedSubmissions() {
         log.info("Fetching failed contact submissions");
         List<TCSContact> failed = contactRepository.findByStatus("EMAIL_FAILED");
-        return ResponseEntity.ok(new ApiResponse<>("success", failed));
+        return ResponseEntity.ok(ApiResponse.success(failed));
     }
 
     @PostMapping(consumes = {MediaType.ALL_VALUE})
@@ -69,9 +59,7 @@ public class TCSContactController {
             return submitContactForm(request);
         } catch (Exception ex) {
             log.error("Failed to parse contact request body", ex);
-            return ResponseEntity.status(400).body(
-                    new ApiResponse<>("error", "Invalid request body. Please send JSON with application/json Content-Type.")
-            );
+            return ResponseEntity.status(400).body(ApiResponse.error("Invalid request body. Please send JSON with application/json Content-Type."));
         }
     }
 }
