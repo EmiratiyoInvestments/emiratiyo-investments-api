@@ -11,18 +11,6 @@ A Spring Boot monolith backend serving the Emiratiyo Investments (EM) platform. 
 - **Reactive Resilience** — Implementation of Circuit Breaker and Retry patterns for external AI and Email services.
 - **API Versioning** — All endpoints follow the `/api/v1/` standard for long-term maintainability.
 
----
-
-## Technical Upgrades (Industry-Grade)
-
-- **Java 21 Records** — Used for all DTOs (Request/Response) to ensure thread-safe, immutable data carriers.
-- **Spring WebClient** — Fully non-blocking, reactive HTTP client replacing legacy `RestTemplate` for all external API integrations (Gemini AI & Resend).
-- **Custom Exception Layer** — A structured, business-driven exception hierarchy with a centralized `@RestControllerAdvice` handler.
-- **Lombok @Builder** — Consistent use of the Builder pattern across all data models for readable and safe object construction.
-- **Caching** — Optimized Upstash Redis integration with Spring Cache for history and lookups.
-
----
-
 ## Tech Stack
 
 | Layer | Technology |
@@ -84,23 +72,6 @@ The following keys are required in `application.properties`:
 - `emira.gemini.primary-key`: Google Gemini AI key.
 - `emira.internal.secret`: Shared secret for internal analyst endpoints.
 - `spring.data.redis.*`: Upstash Redis credentials.
-
----
-
-## Monitoring & Health
-
-This server embeds **Spring Boot Admin** for real-time operational monitoring.
-
-- **URL**: [https://emiratiyo-api.fly.dev/](https://emiratiyo-api.fly.dev/) (Root)
-- **Health**: `/actuator/health` (Exposes DB, Redis, and Circuit Breaker status)
-
-**Dashboard Credentials:**
-```
-Username: admin
-Password: [configured in application.properties]
-```
-
----
 
 ## Documentation
 
