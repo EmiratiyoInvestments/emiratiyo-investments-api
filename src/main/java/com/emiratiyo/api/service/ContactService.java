@@ -11,13 +11,16 @@ import com.emiratiyo.api.util.InputSanitizer;
 import com.emiratiyo.api.util.RequestIdUtil;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class ContactService {
 
-    private final EmailService emailService;
+    private static final String EMAIL_FAILED_STATUS = "EMAIL_FAILED";
+
+    private final EmailSender emailSender;
     private final ContactRepository contactRepository;
 
     public void processContactForm(ContactRequest request) {
@@ -37,7 +40,11 @@ public class ContactService {
         
         contactRepository.save(submission);
 
-        emailService.sendContactEmail(request); // async — returns immediately
+        emailSender.sendContactEmail(request); // async — returns immediately
         log.info("[{}] EM contact form saved, email dispatched asynchronously", requestId);
+    }
+
+    public List<ContactEntity> getFailedSubmissions() {
+        return contactRepository.findByStatus(EMAIL_FAILED_STATUS);
     }
 }
