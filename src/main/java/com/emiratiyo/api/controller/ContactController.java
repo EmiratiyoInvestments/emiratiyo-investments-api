@@ -3,13 +3,11 @@ package com.emiratiyo.api.controller;
 import com.emiratiyo.api.dto.ApiResponse;
 import com.emiratiyo.api.dto.ContactRequest;
 import com.emiratiyo.api.entity.ContactEntity;
-import com.emiratiyo.api.repository.ContactRepository;
 import com.emiratiyo.api.service.ContactService;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -24,7 +22,6 @@ import java.util.List;
 public class ContactController {
 
     private final ContactService contactService;
-    private final ContactRepository contactRepository;
 
     @PostMapping
     public ResponseEntity<ApiResponse<String>> submitContactForm(@Valid @RequestBody ContactRequest request) {
@@ -36,7 +33,7 @@ public class ContactController {
     @GetMapping("/failed")
     public ResponseEntity<ApiResponse<List<ContactEntity>>> getFailedSubmissions() {
         log.info("Fetching failed contact submissions");
-        List<ContactEntity> failed = contactRepository.findByStatus("EMAIL_FAILED");
+        List<ContactEntity> failed = contactService.getFailedSubmissions();
         return ResponseEntity.ok(ApiResponse.success(failed));
     }
 }

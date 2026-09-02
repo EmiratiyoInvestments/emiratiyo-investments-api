@@ -11,13 +11,16 @@ import com.emiratiyo.api.util.InputSanitizer;
 import com.emiratiyo.api.util.RequestIdUtil;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class BusinessSetupService {
 
-    private final EmailService emailService;
+    private static final String EMAIL_FAILED_STATUS = "EMAIL_FAILED";
+
+    private final EmailSender emailSender;
     private final BusinessSetupRepository businessSetupRepository;
 
     public void processBusinessSetup(BusinessSetupRequest request) {
@@ -37,7 +40,11 @@ public class BusinessSetupService {
         
         businessSetupRepository.save(submission);
 
-        emailService.sendBusinessSetupEmail(request); // async — returns immediately
+        emailSender.sendBusinessSetupEmail(request); // async — returns immediately
         log.info("[{}] EM business setup saved, email dispatched asynchronously", requestId);
+    }
+
+    public List<BusinessSetupEntity> getFailedSubmissions() {
+        return businessSetupRepository.findByStatus(EMAIL_FAILED_STATUS);
     }
 }
