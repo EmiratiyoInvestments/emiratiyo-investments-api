@@ -22,13 +22,10 @@ public class EmiraHistoryService {
 
     private final EmiraAnalysisRepository emiraAnalysisRepository;
 
-    /**
-     * Returns a lightweight summary list, cached for 10 minutes.
-     * Cache is evicted whenever a new analysis is saved or any entry is deleted.
-     */
+   
     @Cacheable(value = "emiraHistory", key = "'all'")
     public List<EmiraHistoryResponse> getHistory() {
-        log.debug("Cache miss — loading Emira history list from database");
+        log.debug("Cache miss, loading Emira history list from database");
         return emiraAnalysisRepository.findAllByOrderByCreatedAtDesc()
                 .stream()
                 .map(a -> EmiraHistoryResponse.builder()
@@ -40,9 +37,7 @@ public class EmiraHistoryService {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Returns the full analysis (including responseText), cached per ID for 30 minutes.
-     */
+    
     @Cacheable(value = "emiraHistoryItem", key = "#id")
     public EmiraAnalysisEntity getById(Long id) {
         log.debug("Cache miss — loading Emira analysis {} from database", id);
@@ -54,9 +49,7 @@ public class EmiraHistoryService {
         return emiraAnalysisRepository.existsById(id);
     }
 
-    /**
-     * Persists a new analysis and evicts the list cache so the next GET reflects the new entry.
-     */
+
     @CacheEvict(value = "emiraHistory", key = "'all'")
     public EmiraAnalysisEntity save(EmiraAnalysisEntity analysis) {
         EmiraAnalysisEntity saved = emiraAnalysisRepository.save(analysis);
@@ -64,9 +57,7 @@ public class EmiraHistoryService {
         return saved;
     }
 
-    /**
-     * Deletes an analysis and evicts both the list cache and the specific item cache.
-     */
+
     @Caching(evict = {
             @CacheEvict(value = "emiraHistory", key = "'all'"),
             @CacheEvict(value = "emiraHistoryItem", key = "#id")

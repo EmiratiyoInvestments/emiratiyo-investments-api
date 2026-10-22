@@ -66,6 +66,13 @@
 			<artifactId>spring-boot-admin-starter-server</artifactId>
 			<version>3.4.4</version>
 		</dependency>
+		<!-- monitoring; 
+		<dependency>
+			<groupId>de.codecentric</groupId>
+			<artifactId>spring-boot-admin-starter-client</artifactId>
+			<version>3.4.4</version>
+		</dependency>
+		-->
 
 		<dependency>
 			<groupId>org.springframework.boot</groupId>

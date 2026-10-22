@@ -34,7 +34,9 @@ public class SecurityConfig {
                 return http
                                 .authorizeHttpRequests(auth -> auth
                                                 .requestMatchers(
-                                                                "/assets/**", "/actuator/**", "/instances/**",
+                                                                "/assets/**", "/actuator/**",
+                                                                // monitoring endpoint.
+                                                                // "/instances", "/instances/**",
                                                                 "/api/**", "/favicon.ico", "/ping",
                                                                 "/login", "/logout", "/*.js", "/*.css", "/*.ico",
                                                                 "/*.png")
@@ -48,7 +50,7 @@ public class SecurityConfig {
                                 .httpBasic(Customizer.withDefaults())
                                 .csrf(csrf -> csrf
                                                 .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-                                                .ignoringRequestMatchers("/api/**", "/instances/**", "/actuator/**"))
+                                                .ignoringRequestMatchers("/api/**", "/actuator/**"))
                                 .build();
         }
 

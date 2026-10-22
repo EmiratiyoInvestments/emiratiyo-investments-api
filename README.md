@@ -20,7 +20,7 @@ A Spring Boot monolith backend serving the Emiratiyo Investments (EM) platform. 
 | Database | PostgreSQL (Neon serverless) |
 | ORM | Spring Data JPA / Hibernate |
 | HTTP Client | Spring WebClient (Reactive) |
-| AI | Google Gemini 2.5 Flash |
+| AI | Groq (Gemini 2.5 Flash backup) |
 | Resilience | Resilience4j (Circuit Breaker) |
 | Cache | Upstash Redis (Spring Cache) |
 | Rate Limiting | Bucket4j Interceptor |
@@ -69,7 +69,9 @@ The application starts on [http://localhost:8080](http://localhost:8080) by defa
 
 The following keys are required in `application.properties`:
 - `em.resend.api.key`: API key for Resend email dispatch.
-- `emira.gemini.primary-key`: Google Gemini AI key.
+- `emira.ai.provider`: `groq` (default) or `gemini`.
+- `emira.groq.api-key`: Groq API key (`EMIRA_GROQ_API_KEY`).
+- `emira.gemini.primary-key`: Google Gemini AI key (backup).
 - `emira.internal.secret`: Shared secret for internal analyst endpoints.
 - `spring.data.redis.*`: Upstash Redis credentials.
 

@@ -35,7 +35,10 @@ Create a file named `src/main/resources/application-local.properties` (this file
 | Property | Description |
 |---|---|
 | `em.resend.api.key` | Resend API key for emails |
-| `emira.gemini.primary-key` | Google Gemini API key |
+| `emira.ai.provider` | `groq` (default) or `gemini` |
+| `emira.groq.api-key` | Groq API key (`EMIRA_GROQ_API_KEY`) |
+| `emira.groq.model` | Groq model id (default `llama-3.3-70b-versatile`) |
+| `emira.gemini.primary-key` | Google Gemini API key (backup) |
 | `emira.internal.secret` | Shared secret for `/api/v1/internal/*` |
 
 ### Resilience (Circuit Breakers)

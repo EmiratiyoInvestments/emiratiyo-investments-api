@@ -26,12 +26,10 @@ public class RateLimitingInterceptor implements HandlerInterceptor {
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
             throws Exception {
 
-        // Only apply rate limiting to contact endpoint
         if (!request.getRequestURI().startsWith("/api/contact")) {
             return true;
         }
 
-        // Only rate limit POST requests (form submissions)
         if (!"POST".equalsIgnoreCase(request.getMethod())) {
             return true;
         }
@@ -55,7 +53,6 @@ public class RateLimitingInterceptor implements HandlerInterceptor {
     private String getClientIp(HttpServletRequest request) {
         String xForwardedFor = request.getHeader("X-Forwarded-For");
         if (xForwardedFor != null && !xForwardedFor.isEmpty()) {
-            // X-Forwarded-For can contain multiple IPs, use the first one
             return xForwardedFor.split(",")[0].trim();
         }
         return request.getRemoteAddr();

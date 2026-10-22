@@ -40,7 +40,7 @@ public class ContactService {
         
         contactRepository.save(submission);
 
-        emailSender.sendContactEmail(request); // async — returns immediately
+        emailSender.sendContactEmail(request); // async - returns immediately
         log.info("[{}] EM contact form saved, email dispatched asynchronously", requestId);
     }
 

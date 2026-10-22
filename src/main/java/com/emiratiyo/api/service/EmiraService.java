@@ -29,7 +29,7 @@ public class EmiraService {
 
         return aiClient.generateContent(prompt)
             .doOnSuccess(text -> {
-                log.info("Gemini response received, length: {}", text.length());
+                log.info("AI response received, length: {}", text.length());
                 // Save to history asynchronously
                 emiraHistoryService.save(
                         EmiraAnalysisEntity.builder()
@@ -38,14 +38,12 @@ public class EmiraService {
                                 .responseText(text)
                                 .build());
             })
-            .doOnError(e -> log.error("Both Gemini keys failed or unexpected error: {}", e.getMessage()));
+            .doOnError(e -> log.error("Emira analysis failed: {}", e.getMessage()));
     }
 
-    /**
-     * Fallback method for Circuit Breaker
-     */
+   
     private Mono<String> fallbackAnalyse(EmiraAnalysisRequest request, Throwable t) {
-        log.error("Circuit breaker opened for Emira Gemini: {}", t.getMessage());
+        log.error("Circuit breaker opened for Emira AI: {}", t.getMessage());
         return Mono.error(new AiAnalysisException("Emira is temporarily unavailable. Please try again later."));
     }
 }

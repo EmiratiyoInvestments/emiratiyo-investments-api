@@ -76,7 +76,7 @@ All API endpoints return a standardized JSON envelope:
 
 ### Analyse
 
-Runs a non-blocking AI property analysis using Gemini 2.5 Flash.
+Runs a non-blocking AI property analysis. Groq is the default provider; Gemini remains available as a backup via `emira.ai.provider=gemini`.
 
 | Method | Endpoint | Description |
 |---|---|---|

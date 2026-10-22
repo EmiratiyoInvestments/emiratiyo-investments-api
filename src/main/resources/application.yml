@@ -1,0 +1,38 @@
+# monitoring configuration.
+# spring:
+#   boot:
+#     admin:
+#       client:
+#         url: ${SPRING_BOOT_ADMIN_CLIENT_URL:https://emiratiyo-api.fly.dev}
+#         username: ${SPRING_BOOT_ADMIN_USERNAME:admin}
+#         password: ${SPRING_BOOT_ADMIN_PASSWORD}
+#         instance:
+#           name: ${SPRING_BOOT_ADMIN_CLIENT_INSTANCE_NAME:Emiratiyo Investments API}
+#           service-url: ${SPRING_BOOT_ADMIN_CLIENT_INSTANCE_SERVICE_URL:https://emiratiyo-api.fly.dev}
+#           management-url: ${SPRING_BOOT_ADMIN_CLIENT_INSTANCE_MANAGEMENT_URL:https://emiratiyo-api.fly.dev/actuator}
+#           health-url: ${SPRING_BOOT_ADMIN_CLIENT_INSTANCE_HEALTH_URL:https://emiratiyo-api.fly.dev/actuator/health}
+#
+# management:
+#   endpoints:
+#     web:
+#       exposure:
+#         include: "*"
+#   endpoint:
+#     health:
+#       show-details: always
+#   info:
+#     env:
+#       enabled: true
+#   health:
+#     circuitbreakers:
+#       enabled: true
+#     ratelimiters:
+#       enabled: true
+#
+# resilience4j:
+#   circuitbreaker:
+#     instances:
+#       emiraGemini:
+#         registerHealthIndicator: true
+#       resendEmail:
+#         registerHealthIndicator: true

@@ -40,7 +40,7 @@ public class BusinessSetupService {
         
         businessSetupRepository.save(submission);
 
-        emailSender.sendBusinessSetupEmail(request); // async — returns immediately
+        emailSender.sendBusinessSetupEmail(request); // async - returns immediately
         log.info("[{}] EM business setup saved, email dispatched asynchronously", requestId);
     }
 

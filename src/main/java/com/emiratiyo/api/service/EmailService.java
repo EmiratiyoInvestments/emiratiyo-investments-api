@@ -88,13 +88,9 @@ public class EmailService implements EmailSender {
                 .doOnError(e -> log.error("Error sending EM email via Resend API, reply-to: {}", emailHash, e))
                 .subscribe();
     }
-
-    /**
-     * Fallback for Resend Email Circuit Breaker
-     */
+    
     private void fallbackEmail(Object request, Throwable t) {
         log.error("Circuit breaker opened for Resend Email Service. Failing gracefully. Error: {}", t.getMessage());
-        // In a real app, we might save to a 'failed_emails' table here for retry later
     }
 
     private String maskEmail(String email) {

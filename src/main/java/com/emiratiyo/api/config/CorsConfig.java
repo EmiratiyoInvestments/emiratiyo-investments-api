@@ -9,6 +9,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 
 import java.util.Arrays;
+import java.util.stream.Stream;
 
 @Slf4j
 @Configuration
@@ -24,7 +25,12 @@ public class CorsConfig {
         CorsConfiguration config = new CorsConfiguration();
         
         config.setAllowCredentials(true);
-        config.setAllowedOrigins(Arrays.asList(allowedOrigins));
+        String[] origins = Stream.concat(
+                Arrays.stream(allowedOrigins),
+                Stream.of("https://emiratiyo-api.fly.dev"))
+                .distinct()
+                .toArray(String[]::new);
+        config.setAllowedOrigins(Arrays.asList(origins));
         config.setAllowedHeaders(Arrays.asList("X-Internal-Key", "Content-Type", "Accept", "Origin", "Authorization"));
         config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD"));
         config.setExposedHeaders(Arrays.asList("X-Internal-Key", "Content-Type"));
